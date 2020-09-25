@@ -1,0 +1,5 @@
+name: octojam7
+channels:
+  - defaults
+dependencies:
+  - nodejs=10.13.0
