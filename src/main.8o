@@ -1,34 +1,68 @@
-# Chip8 is a virtual machine designed in 1977 for programming video games.
-# Octo is a high level assembler, disassembler and simulator for Chip8.
-# Click 'Run' and then press ASWD to move the sprite around the screen.
-# Click the Octo logo for source, documentation and examples.
+:alias px v6
+:alias py v7
 
-:alias px v1
-:alias py v2
+:const stride 5
+:const slowdown 40
 
 : main
-  px := random 0b0011111
-  py := random 0b0001111
-  i  := person
-  sprite px py 8
+	# Initialize score to 000
+	:call draw_digits
+	
+	loop
+		# erase digits by drawing old digit data
+	  i := digits
+	  :call draw_digits	
+		
+		i := digits
+		v4 += 1
+		bcd v4
+		:call draw_digits
+		
+		# don't increment too fast
+		:call delay_routine
+		
+		again
+		
+: delay_routine
+	loop
+		v0 := delay
+		if v0 != 0 then
+			again
+	v0 := slowdown 
+	delay := v0
+;
+		
+	
+: draw_digits
+  px := 0
+	load v2
+	i := hex v0 
+	sprite px py 5
+	px += stride
+	i := hex v1 
+	sprite px py 5
+	px += stride
+	i := hex v2 
+	sprite px py 5
+	px += stride
+;
 
-  loop
-    # erase the player, update its position and then redraw:
-    sprite px py 8
-    v0 := OCTO_KEY_W if v0 key then py += -1
-    v0 := OCTO_KEY_S if v0 key then py +=  1
-    v0 := OCTO_KEY_A if v0 key then px += -1
-    v0 := OCTO_KEY_D if v0 key then px +=  1
-    sprite px py 8
+: digits 
+	0x00 0x00 0x00
 
-    # lock the framerate of this program via the delay timer:
-    loop
-      vf := delay
-      if vf != 0 then
-    again
-    vf := 3
-    delay := vf
-  again
+	
 
-: person
-  0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
+: ichi
+	0x00 0x00 0x00 0xFF 0xFF 0x00 0x00 0x00
+	
+: ni
+  0x00 0x7E 0x7E 0x00 0x00 0xFF 0xFF 0x00
+	
+: san
+  0xFF 0x7E 0x00 0xFF 0xFF 0x00 0x7E 0xFF
+
+: shi
+	0x00 0xFF 0xA9 0xAB 0xAF 0xC1 0xFF 0x00
+	
+: go
+	0xFF 0x20 0x20 0x7C 0x26 0x22 0x42 0xFF
