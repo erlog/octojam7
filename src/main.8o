@@ -1,68 +1,100 @@
-:alias px v6
-:alias py v7
-
 :const stride 5
 :const slowdown 40
 
+:alias no_erase_flag vb
+:alias iterator vc
+:alias px vd
+:alias py ve
+
 : main
-	# Initialize score to 000
-	:call draw_digits
-	
-	loop
-		# erase digits by drawing old digit data
-	  i := digits
-	  :call draw_digits	
-		
-		i := digits
-		v4 += 1
-		bcd v4
-		:call draw_digits
-		
-		# don't increment too fast
-		:call delay_routine
-		
-		again
-		
+    # Initialize score
+    i := result
+    no_erase_flag := 1
+    :call draw_result
+    no_erase_flag := 0
+
+    loop
+        :call draw_result
+        again
+
+    :call never_end
+return
+
+
+
+
+: never_end
+    loop
+        again
+return
+
+
 : delay_routine
-	loop
-		v0 := delay
-		if v0 != 0 then
-			again
-	v0 := slowdown 
-	delay := v0
+    loop
+        v0 := delay
+        if v0 != 0 begin
+            again
+        end
+    v0 := slowdown
+    delay := v0
+return
+
+
+: draw_result
+  px := 2
+    py := 2
+    iterator := 0
+
+    loop
+        # load digit for current result
+        i := result_minus_one
+        i += iterator
+        load v1
+
+        # load digit for old result
+        i := old_result
+        i += iterator
+        load v0
+
+        # if flag is non-zero we only draw the new digit and don't check if we should erase
+        if no_erase_flag != 0 begin
+            # draw new digit
+            i := hex v1
+            sprite px py 5
+        else
+            # only update digit if we need to
+            if v0 != v1 begin
+                # erase old digit
+                i := hex v0
+                sprite px py 5
+                # draw new digit
+                i := hex v1
+                sprite px py 5
+            end
+        end
+
+        # move over to next digit
+        px += stride
+
+        # increment iterator and go again if not finished
+        iterator += 1
+        if iterator != 10 begin
+            again
+        end
 ;
-		
-	
-: draw_digits
-  px := 0
-	load v2
-	i := hex v0 
-	sprite px py 5
-	px += stride
-	i := hex v1 
-	sprite px py 5
-	px += stride
-	i := hex v2 
-	sprite px py 5
-	px += stride
-;
 
-: digits 
-	0x00 0x00 0x00
+: left_operand
+  0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
 
-	
+: right_operand
+  0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
 
-: ichi
-	0x00 0x00 0x00 0xFF 0xFF 0x00 0x00 0x00
-	
-: ni
-  0x00 0x7E 0x7E 0x00 0x00 0xFF 0xFF 0x00
-	
-: san
-  0xFF 0x7E 0x00 0xFF 0xFF 0x00 0x7E 0xFF
+: old_result
+  0x09 0x08 0x07 0x06 0x05 0x04 0x03 0x02 0x01 0x00
 
-: shi
-	0x00 0xFF 0xA9 0xAB 0xAF 0xC1 0xFF 0x00
-	
-: go
-	0xFF 0x20 0x20 0x7C 0x26 0x22 0x42 0xFF
+: result_minus_one
+    0x00
+
+: result
+  0x09 0x08 0x07 0x06 0x05 0x04 0x03 0x02 0x01 0x00
+
