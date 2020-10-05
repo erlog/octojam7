@@ -1,100 +1,190 @@
-:const stride 5
-:const slowdown 40
-
+﻿:alias carry_column va
 :alias no_erase_flag vb
-:alias iterator vc
+:alias iterator vc 
 :alias px vd
 :alias py ve
 
+:const stride 5
+:const slowdown 40
+:const numwidth 10 
+:const numwidth_minus_one 9
+
 : main
-    # Initialize score
-    i := result
-    no_erase_flag := 1
-    :call draw_result
-    no_erase_flag := 0
+	# Initialize score to 000
+	i := result
+	no_erase_flag := 1
+	:call draw_bignum
+	no_erase_flag := 0
+	
+	# save result to old_result
+	i := result
+	load v9
+	i := old_result
+	save v9
+	
+	# add bignum
+	:call add_bignum
+	
+	# display new result
+	:call draw_bignum
+	
+	# copy result to old_result
+	i := result
+	load v9
+	i := old_result
+	save v9
+	
+	loop 
+		again
 
-    loop
-        :call draw_result
-        again
 
-    :call never_end
-return
-
-
-
-
-: never_end
-    loop
-        again
-return
-
-
+			
+		
+		
+		
 : delay_routine
-    loop
-        v0 := delay
-        if v0 != 0 begin
-            again
-        end
-    v0 := slowdown
-    delay := v0
+	loop
+		v0 := delay
+		if v0 != 0 begin 
+			again
+		end
+	v0 := slowdown 
+	delay := v0
+return
+
+		
+	
+: draw_bignum
+  px := 2
+	py := 2
+	iterator := 0
+	
+	loop
+		# load digit for current result to v1
+		va := numwidth_minus_one 
+		i := old_result
+		i += va
+		i += iterator
+		load v1
+		
+		# load digit for old result to v0
+		i := old_result
+		i += iterator
+		load v0
+		
+		# if flag is non-zero we only draw the new digit and don't check if we should erase
+		if no_erase_flag != 0 begin 
+			# draw new digit
+			i := hex v1
+			sprite px py 5
+		else
+			# only update digit if we need to
+			if v0 != v1 begin 
+				# erase old digit 
+				i := hex v0
+				sprite px py 5
+				# draw new digit
+				i := hex v1
+				sprite px py 5
+			end
+		end
+				
+		# move over to next digit 
+		px += stride
+		
+		# increment iterator and go again if not finished
+		iterator += 1
+		if iterator != numwidth begin 
+			again
+		end
+		
 return
 
 
-: draw_result
-  px := 2
-    py := 2
-    iterator := 0
+: add_bignum
+	iterator := numwidth_minus_one
+	carry_column := 0
+	
+	loop
+		# load digit for right operand to v1
+		if iterator != 0 begin
+			# when the iterator is  not zero we can index from the start of the right operand directly
+			i := right_operand
+			iterator -= 1
+			i += iterator
+			iterator += 1
+			load v1
+		else
+			# when loading the first digit we need to index from the left operand so we can come in one byte early
+			# in order to load the first digit of the right operand in v1
+		  i := left_operand
+			iterator := numwidth_minus_one
+			i += iterator 
+			load v1
+			iterator := 0
+		end
+			
+		# load digit for left operand to v0 
+		i := left_operand 
+		i += iterator
+		load v0
+		
+		# set i to point to current column of result
+		i := result
+		i += iterator
+		
+		# add digits and carry column together
+		v0 += v1
+		v0 += carry_column
+		
+		# sort out carry by adding to carry column until the current column is under 10 
+		carry_column := 0
+		if v0 > 9 begin
+			loop
+				carry_column += 1
+				v0 -= 10
+				if v0 > 9 begin
+					again
+				end
+		end
+		
+		# save digit to result
+		save v0
+		
+		# prevent overflow by capping at all nines if we would carry on the first column
+		if iterator == 0 begin
+			if carry_column > 0 begin 
+				i := max_bignum
+				load v9
+				i := result
+				save v9
+			end
+		end
+		
+		# check if we're finished
+		if iterator != 0x00 begin
+			iterator -= 1
+			again
+		end
+return
 
-    loop
-        # load digit for current result
-        i := result_minus_one
-        i += iterator
-        load v1
 
-        # load digit for old result
-        i := old_result
-        i += iterator
-        load v0
+: min_bignum
+  0 0 0 0 0 0 0 0 0 0
 
-        # if flag is non-zero we only draw the new digit and don't check if we should erase
-        if no_erase_flag != 0 begin
-            # draw new digit
-            i := hex v1
-            sprite px py 5
-        else
-            # only update digit if we need to
-            if v0 != v1 begin
-                # erase old digit
-                i := hex v0
-                sprite px py 5
-                # draw new digit
-                i := hex v1
-                sprite px py 5
-            end
-        end
+: max_bignum
+	9 9 9 9 9 9 9 9 9 9
 
-        # move over to next digit
-        px += stride
-
-        # increment iterator and go again if not finished
-        iterator += 1
-        if iterator != 10 begin
-            again
-        end
-;
-
-: left_operand
-  0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+: left_operand 
+  0 0 0 0 0 0 0 0 0 0
 
 : right_operand
-  0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-
+  0 0 0 0 0 0 0 0 0 0
+	
 : old_result
-  0x09 0x08 0x07 0x06 0x05 0x04 0x03 0x02 0x01 0x00
-
-: result_minus_one
-    0x00
-
+  0 0 0 0 0 0 0 0 0 0
+	
 : result
-  0x09 0x08 0x07 0x06 0x05 0x04 0x03 0x02 0x01 0x00
-
+  0 0 0 0 0 0 0 0 0 0
+	
+	
