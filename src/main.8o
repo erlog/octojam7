@@ -1,89 +1,144 @@
-﻿:alias carry_column va
+﻿:alias pass_value v0
+:alias left_digit v1
+:alias right_digit v2
+:alias old_digit v1
+:alias new_digit v2
+:alias carry_column va
 :alias no_erase_flag vb
 :alias iterator vc
 :alias px vd
 :alias py ve
 
-:const stride 5
-:const slowdown 40
+:const stride 4
 :const numwidth 10
 :const numwidth_minus_one 9
 
 : main
+		# initialize delay
+		v0 := 255
+		delay := v0 
+		
     # Initialize score to 000
     i := result
     no_erase_flag := 1
     :call draw_bignum
     no_erase_flag := 0
+		
+		px := 1
+		py := 1
+		i := sprite_emerson
+		sprite px py 10
+		
+		px := 22
+		py := 1
+		i := sprite_lake
+		sprite px py 10
+		
+		px := 45
+		py := 1 
+		i := sprite_palmer
+		sprite px py 10
+		
+		px := 1
+		py := 14
+		i := sprite_crosby
+		sprite px py 10
+		
+		px := 22 
+		py := 14
+		i := sprite_stills
+		sprite px py 10
+		
+		px := 45 
+		py := 14
+		i := sprite_nash
+		sprite px py 10
+		
 
-    # save result to old_result
-    i := result
-    load v9
-    i := old_result
-    save v9
+		loop 
+			# save result to old_result
+			i := result
+			load v9
+			i := old_result
+			save v9
+			
+			# store result as left operand 
+			i := result
+			load v9
+			i := left_operand
+			save v9
+			
+			# save delay difference as right operand
+			:call calc_delay
+			v1 := 7 
+			i := right_operand
+			i += v1
+			bcd v0
+			
+			# add timer
+			:call add_bignum
 
-    :call sub_bignum
+			# display new result
+			:call draw_bignum
 
-    # display new result
-    :call draw_bignum
-
-    # copy result to old_result
-    i := result
-    load v9
-    i := old_result
-    save v9
-
-    loop
-        again
+			# copy result to old_result
+			i := result
+			load v9
+			i := old_result
+			save v9
+			
+			again
 
 
 
 
 
-
-: delay_routine
-    loop
-        v0 := delay
-        if v0 != 0 begin
-            again
-        end
-    v0 := slowdown
-    delay := v0
+: calc_delay
+	# subtract delay
+	pass_value := 255
+	v1 := delay
+	pass_value -= v1
+	# reset delay timer
+	v1 := 255
+	delay := v1
 return
 
 
-
 : draw_bignum
-  px := 2
-    py := 2
+		px := 12 
+    py := 26
     iterator := 0
 
     loop
-        # load digit for current result to v1
-        va := numwidth_minus_one
-        i := old_result
-        i += va
-        i += iterator
-        load v1
-
-        # load digit for old result to v0
+        # load old digit 
         i := old_result
         i += iterator
         load v0
+				old_digit := v0
+				
+        # load new_digit 
+        i := result 
+        i += iterator
+        load v0
+				new_digit := v0
 
+				
         # if flag is non-zero we only draw the new digit and don't check if we should erase
         if no_erase_flag != 0 begin
             # draw new digit
-            i := hex v1
+						pass_value := new_digit
+						:call 3_by_5_font_i 
             sprite px py 5
         else
             # only update digit if we need to
-            if v0 != v1 begin
+            if old_digit != new_digit begin
                 # erase old digit
-                i := hex v0
+								pass_value := old_digit
+								:call 3_by_5_font_i 
                 sprite px py 5
                 # draw new digit
-                i := hex v1
+								pass_value := new_digit
+								:call 3_by_5_font_i 
                 sprite px py 5
             end
         end
@@ -105,50 +160,40 @@ return
     carry_column := 0
 
     loop
-        # load digit for right operand to v1
-        if iterator != 0 begin
-            # when the iterator is not zero we can index from the start of the right operand directly
-            i := right_operand
-            iterator -= 1
-            i += iterator
-            iterator += 1
-            load v1
-        else
-            # when loading the first digit we need to index from the left operand so we can come in one byte early
-            # in order to load the first digit of the right operand in v1
-          i := left_operand
-            iterator := numwidth_minus_one
-            i += iterator
-            load v1
-            iterator := 0
-        end
-
-        # load digit for left operand to v0
+        # load digit for left operand 
         i := left_operand
         i += iterator
-        load v0
+        load v0 
+				left_digit := v0
+				
+				# load digit for right operand
+				i := right_operand
+				i += iterator
+				load v0
+				right_digit := v0
 
         # set i to point to current column of result
         i := result
         i += iterator
 
         # sub digits and carry column together
-        v0 -= v1
-        v0 -= carry_column
+        left_digit -= right_digit
+        left_digit -= carry_column
 
         # sort out carry by adding to carry column until the current column is under 0 (>= 255 after underflow)
         carry_column := 0
-        if v0 >= 246 begin
+        if left_digit >= 246 begin
             loop
                 carry_column += 1
-                v0 += 10 
-                if v0 >= 246 begin
+                left_digit += 10 
+                if left_digit >= 246 begin
                     again
                 end
         end
 
         # save digit to result
-        save v0
+				v0 := left_digit
+        save v0 
 
         # prevent underflow by flooring at all zeroes if we would carry on the first column
         if iterator == 0 begin
@@ -161,7 +206,7 @@ return
         end
 
         # check if we're finished
-        if iterator != 0x00 begin
+        if iterator != 0 begin
             iterator -= 1
             again
         end
@@ -173,50 +218,40 @@ return
     carry_column := 0
 
     loop
-        # load digit for right operand to v1
-        if iterator != 0 begin
-            # when the iterator is  not zero we can index from the start of the right operand directly
-            i := right_operand
-            iterator -= 1
-            i += iterator
-            iterator += 1
-            load v1
-        else
-            # when loading the first digit we need to index from the left operand so we can come in one byte early
-            # in order to load the first digit of the right operand in v1
-          i := left_operand
-            iterator := numwidth_minus_one
-            i += iterator
-            load v1
-            iterator := 0
-        end
-
-        # load digit for left operand to v0
+        # load digit for left operand 
         i := left_operand
         i += iterator
-        load v0
+        load v0 
+				left_digit := v0
+				
+				# load digit for right operand
+				i := right_operand
+				i += iterator
+				load v0
+				right_digit := v0
 
         # set i to point to current column of result
         i := result
         i += iterator
 
         # add digits and carry column together
-        v0 += v1
-        v0 += carry_column
+        left_digit += right_digit
+        left_digit += carry_column
 
         # sort out carry by adding to carry column until the current column is under 10
         carry_column := 0
-        if v0 > 9 begin
+        if left_digit > 9 begin
             loop
                 carry_column += 1
-                v0 -= 10
-                if v0 > 9 begin
+                left_digit -= 10
+                if left_digit > 9 begin
                     again
                 end
         end
 
         # save digit to result
-        save v0
+				v0 := left_digit
+        save v0 
 
         # prevent overflow by capping at all nines if we would carry on the first column
         if iterator == 0 begin
@@ -229,27 +264,96 @@ return
         end
 
         # check if we're finished
-        if iterator != 0x00 begin
+        if iterator != 0 begin
             iterator -= 1
             again
         end
 return
 
+: hex_font_i
+	i := hex v0
+return
+
+: 3_by_3_font_i
+	i := 3_by_3_font_index
+	i += pass_value 
+	load v0
+	i := 3_by_3_font
+	i += v0
+return
+
+: 3_by_3_font_index
+	0 3 6 9 12 15 18 21 24 27
+
+: 3_by_3_font
+	0xE0 0xA0 0xE0 #zero
+	0xC0 0x40 0xE0 #one
+	0xC0 0x40 0x60 #two
+  0xE0 0x60 0xE0 #three
+	0xA0 0xE0 0x20 #four
+	0x60 0x40 0xC0 #five
+	0x80 0xE0 0xE0 #six
+	0xE0 0x20 0x20 #seven
+	0x60 0xE0 0xE0 #eight
+	0xE0 0xE0 0x20 #nine
+	
+: 3_by_5_font_i
+	i := 3_by_5_font_index
+	i += pass_value 
+	load v0
+	i := 3_by_5_font
+	i += v0
+return
+
+: 3_by_5_font_index
+	0 5 10 15 20 25 30 35 40 45 
+	
+: 3_by_5_font	
+	0xE0 0xA0 0xA0 0xA0 0xE0 #zero
+	0xC0 0x40 0x40 0x40 0xE0 #one
+	0xE0 0x20 0xE0 0x80 0xE0 #two
+  0xE0 0x20 0xE0 0x20 0xE0 #three
+	0xA0 0xA0 0xE0 0x20 0x20 #four
+	0xE0 0x80 0xE0 0x20 0xE0 #five
+	0xE0 0x80 0xE0 0xA0 0xE0 #six
+	0xE0 0xA0 0x20 0x40 0x40 #seven
+	0xE0 0xA0 0xE0 0xA0 0xE0 #eight
+	0xE0 0xA0 0xE0 0x20 0xE0 #nine
 
 : min_bignum
-    0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0
 
 : max_bignum
-    9 9 9 9 9 9 9 9 9 9
+  9 9 9 9 9 9 9 9 9 9
 
 : left_operand
-    0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
 
 : right_operand
-    0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
 
 : old_result
-    0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
 
 : result
-    0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+	
+: sprite_emerson
+0xDF 0x95 0xD5 0x95 0xD1 0x00 0xDB 0x95 0x95 0xB5 
+
+: sprite_lake
+0x80 0x80 0x80 0x80 0xE0 0x09 0x0A 0x0C 0x0A 0x09
+
+: sprite_palmer
+0xE8 0xA8 0xE8 0x88 0x8E 0x00 0xF3 0xAA 0xAA 0x8A
+
+: sprite_crosby
+0xEE 0x89 0x8E 0xE9 0x00 0xEE 0x89 0xEE 0x29 0xEE
+
+: sprite_stills
+0xEE 0x84 0xE4 0x24 0xE0 0x0E 0x88 0x8E 0x82 0xEE
+
+: sprite_nash
+0x62 0x52 0x4A 0x46 0x00 0xE9 0x89 0xEF 0x29 0xE9
+
+: sprite_young
