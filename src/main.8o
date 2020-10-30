@@ -1,4 +1,5 @@
-﻿:alias pass_value v0
+﻿
+:alias pass_value v0
 :alias left_digit v1
 :alias right_digit v2
 :alias old_digit v1
@@ -16,40 +17,40 @@
 :const numwidth_minus_one 9
 
 : draw_bignum
-		px := 12 
+    px := 12
     py := 26
     iterator := 0
 
     loop
-        # load old digit 
+        # load old digit
         i := old_result
         i += iterator
         load v0
-				old_digit := v0
-				
-        # load new_digit 
-        i := result 
+        old_digit := v0
+
+        # load new_digit
+        i := result
         i += iterator
         load v0
-				new_digit := v0
+        new_digit := v0
 
-				
+
         # if flag is non-zero we only draw the new digit and don't check if we should erase
         if no_erase_flag != 0 begin
             # draw new digit
-						pass_value := new_digit
-						:call 3_by_5_font_i 
+            pass_value := new_digit
+            :call 3_by_5_font_i
             sprite px py 5
         else
             # only update digit if we need to
             if old_digit != new_digit begin
                 # erase old digit
-								pass_value := old_digit
-								:call 3_by_5_font_i 
+                pass_value := old_digit
+                :call 3_by_5_font_i
                 sprite px py 5
                 # draw new digit
-								pass_value := new_digit
-								:call 3_by_5_font_i 
+                pass_value := new_digit
+                :call 3_by_5_font_i
                 sprite px py 5
             end
         end
@@ -71,17 +72,17 @@ return
     carry_column := 0
 
     loop
-        # load digit for left operand 
+        # load digit for left operand
         i := left_operand
         i += iterator
-        load v0 
-				left_digit := v0
-				
-				# load digit for right operand
-				i := right_operand
-				i += iterator
-				load v0
-				right_digit := v0
+        load v0
+        left_digit := v0
+
+        # load digit for right operand
+        i := right_operand
+        i += iterator
+        load v0
+        right_digit := v0
 
         # set i to point to current column of result
         i := result
@@ -91,20 +92,21 @@ return
         left_digit -= right_digit
         left_digit -= carry_column
 
-        # sort out carry by adding to carry column until the current column is under 0 (>= 255 after underflow)
+        # sort out carry by adding to carry column until the current column is
+        # under 0 (>= 255 after underflow)
         carry_column := 0
         if left_digit >= 246 begin
             loop
                 carry_column += 1
-                left_digit += 10 
+                left_digit += 10
                 if left_digit >= 246 begin
                     again
                 end
         end
 
         # save digit to result
-				v0 := left_digit
-        save v0 
+        v0 := left_digit
+        save v0
 
         # prevent underflow by flooring at all zeroes if we would carry on the first column
         if iterator == 0 begin
@@ -129,17 +131,17 @@ return
     carry_column := 0
 
     loop
-        # load digit for left operand 
+        # load digit for left operand
         i := left_operand
         i += iterator
-        load v0 
-				left_digit := v0
-				
-				# load digit for right operand
-				i := right_operand
-				i += iterator
-				load v0
-				right_digit := v0
+        load v0
+        left_digit := v0
+
+        # load digit for right operand
+        i := right_operand
+        i += iterator
+        load v0
+        right_digit := v0
 
         # set i to point to current column of result
         i := result
@@ -161,8 +163,8 @@ return
         end
 
         # save digit to result
-				v0 := left_digit
-        save v0 
+        v0 := left_digit
+        save v0
 
         # prevent overflow by capping at all nines if we would carry on the first column
         if iterator == 0 begin
@@ -183,79 +185,79 @@ return
 
 
 : hex_font_i
-	i := hex v0
+    i := hex v0
 return
 
 : 3_by_3_font_i
-	i := 3_by_3_font_index
-	i += pass_value 
-	load v0
-	i := 3_by_3_font
-	i += v0
+    i := 3_by_3_font_index
+    i += pass_value
+    load v0
+    i := 3_by_3_font
+    i += v0
 return
 
 : 3_by_3_font_index
-	0 3 6 9 12 15 18 21 24 27
+    0 3 6 9 12 15 18 21 24 27
 
 : 3_by_3_font
-	0xE0 0xA0 0xE0 #zero
-	0xC0 0x40 0xE0 #one
-	0xC0 0x40 0x60 #two
-  0xE0 0x60 0xE0 #three
-	0xA0 0xE0 0x20 #four
-	0x60 0x40 0xC0 #five
-	0x80 0xE0 0xE0 #six
-	0xE0 0x20 0x20 #seven
-	0x60 0xE0 0xE0 #eight
-	0xE0 0xE0 0x20 #nine
-	
+    0xE0 0xA0 0xE0 #zero
+    0xC0 0x40 0xE0 #one
+    0xC0 0x40 0x60 #two
+    0xE0 0x60 0xE0 #three
+    0xA0 0xE0 0x20 #four
+    0x60 0x40 0xC0 #five
+    0x80 0xE0 0xE0 #six
+    0xE0 0x20 0x20 #seven
+    0x60 0xE0 0xE0 #eight
+    0xE0 0xE0 0x20 #nine
+
 : 3_by_5_font_i
-	i := 3_by_5_font_index
-	i += pass_value 
-	load v0
-	i := 3_by_5_font
-	i += v0
+    i := 3_by_5_font_index
+    i += pass_value
+    load v0
+    i := 3_by_5_font
+    i += v0
 return
 
 : 3_by_5_font_index
-	0 5 10 15 20 25 30 35 40 45 
-	
-: 3_by_5_font	
-	0xE0 0xA0 0xA0 0xA0 0xE0 #zero
-	0xC0 0x40 0x40 0x40 0xE0 #one
-	0xE0 0x20 0xE0 0x80 0xE0 #two
-  0xE0 0x20 0xE0 0x20 0xE0 #three
-	0xA0 0xA0 0xE0 0x20 0x20 #four
-	0xE0 0x80 0xE0 0x20 0xE0 #five
-	0xE0 0x80 0xE0 0xA0 0xE0 #six
-	0xE0 0xA0 0x20 0x40 0x40 #seven
-	0xE0 0xA0 0xE0 0xA0 0xE0 #eight
-	0xE0 0xA0 0xE0 0x20 0xE0 #nine
-	
+    0 5 10 15 20 25 30 35 40 45
+
+: 3_by_5_font
+    0xE0 0xA0 0xA0 0xA0 0xE0 #zero
+    0xC0 0x40 0x40 0x40 0xE0 #one
+    0xE0 0x20 0xE0 0x80 0xE0 #two
+    0xE0 0x20 0xE0 0x20 0xE0 #three
+    0xA0 0xA0 0xE0 0x20 0x20 #four
+    0xE0 0x80 0xE0 0x20 0xE0 #five
+    0xE0 0x80 0xE0 0xA0 0xE0 #six
+    0xE0 0xA0 0x20 0x40 0x40 #seven
+    0xE0 0xA0 0xE0 0xA0 0xE0 #eight
+    0xE0 0xA0 0xE0 0x20 0xE0 #nine
+
 : tick_count
-	0
+    0
 
 : min_bignum
-	0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
 : max_bignum
-  9 9 9 9 9 9 9 9 9 9
+    9 9 9 9 9 9 9 9 9 9
 : left_operand
-  0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
 : right_operand
-  0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
 : old_result
-  0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
 : result
-  0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0
 : bcd_smallnum
-	0 0 0
-	
+    0 0 0
+
 : min_smallnum
-	0
+    0
 : max_smallnum
-	99
-	
-# These are byte fields in order of <Current Count> <Old Count> <Displayed> <SpriteX> <SpriteY> <CountX> <CountY> <CoolDown>
+    99
+
+# The data in each count block acts as kind of a struct for tese aliases
 :alias current_count v0
 :alias old_count v1
 :alias display_flag v2
@@ -264,315 +266,316 @@ return
 :alias count_x v5
 :alias count_y v6
 :alias cooldown v7
+
 : count_emerson
-  04 00 00 01 01 12 04 00 
+    04 00 00 01 01 12 04 00
 : sprite_emerson
-	0xDF 0x95 0xD5 0x95 0xD1 0x00 0xDB 0x95 0x95 0xB5 
+    0xDF 0x95 0xD5 0x95 0xD1 0x00 0xDB 0x95 0x95 0xB5
 : count_lake
-  08 00 00 23 01 33 04 00
+    08 00 00 23 01 33 04 00
 : sprite_lake
-	0x80 0x80 0x80 0x80 0xE0 0x09 0x0A 0x0C 0x0A 0x09
+    0x80 0x80 0x80 0x80 0xE0 0x09 0x0A 0x0C 0x0A 0x09
 : count_palmer
-  15 00 00 45 01 55 04 00
+    15 00 00 45 01 55 04 00
 : sprite_palmer
-	0xE8 0xA8 0xE8 0x88 0x8E 0x00 0xF3 0xAA 0xAA 0x8A
+    0xE8 0xA8 0xE8 0x88 0x8E 0x00 0xF3 0xAA 0xAA 0x8A
 : count_crosby
-  16 00 00 01 14 12 17 00
+    16 00 00 01 14 12 17 00
 : sprite_crosby
-	0xEE 0x89 0x8E 0xE9 0x00 0xEE 0x89 0xEE 0x29 0xEE
+    0xEE 0x89 0x8E 0xE9 0x00 0xEE 0x89 0xEE 0x29 0xEE
 : count_stills
-  23 00 00 23 14 33 17 00
+    23 00 00 23 14 33 17 00
 : sprite_stills
-	0xEE 0x84 0xE4 0x24 0xE0 0x0E 0x88 0x8E 0x82 0xEE
+    0xEE 0x84 0xE4 0x24 0xE0 0x0E 0x88 0x8E 0x82 0xEE
 : count_nash
-  42 00 00 45 14 55 17 00
+    42 00 00 45 14 55 17 00
 : sprite_nash
-	0x62 0x52 0x4A 0x46 0x00 0xE9 0x89 0xEF 0x29 0xE9
-	
+    0x62 0x52 0x4A 0x46 0x00 0xE9 0x89 0xEF 0x29 0xE9
+
 : sprite_young
-	0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
-	
+    0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+
 : draw_resource
-	# check if we should initialize resource
-	if display_flag == 0 begin
-		if current_count > 0 begin
-			# draw marker sprite
-			sprite v3 v4 10
-			display_flag := 1
-			# draw first count
-			v8 := current_count 
-			old_count := current_count
-			px := count_x
-			py := count_y
-			:call draw_smallnum
-			# save new data
-			current_count := v8
-			old_count := v8
-			return
-		end
-	end
-	
-	# check if we should update the number
-	if current_count != old_count begin
-		# save current count so it doesn't get stomped
-		v8 := current_count 
-		# erase old count
-		px := count_x
-		py := count_y
-		:call draw_smallnum
-		# draw new count
-		v1 := v8
-		px := count_x
-		py := count_y
-		:call draw_smallnum
-		# save new data
-		current_count := v8
-		old_count := v8
-	end
+    # check if we should initialize resource
+    if display_flag == 0 begin
+        if current_count > 0 begin
+            # draw marker sprite
+            sprite v3 v4 10
+            display_flag := 1
+            # draw first count
+            v8 := current_count
+            old_count := current_count
+            px := count_x
+            py := count_y
+            :call draw_smallnum
+            # save new data
+            current_count := v8
+            old_count := v8
+            return
+        end
+    end
+
+    # check if we should update the number
+    if current_count != old_count begin
+        # save current count so it doesn't get stomped
+        v8 := current_count
+        # erase old count
+        px := count_x
+        py := count_y
+        :call draw_smallnum
+        # draw new count
+        v1 := v8
+        px := count_x
+        py := count_y
+        :call draw_smallnum
+        # save new data
+        current_count := v8
+        old_count := v8
+    end
 return
 
 : draw_smallnum
-		i := bcd_smallnum
-		bcd v1
-		load v0
-		load v0
-		:call 3_by_5_font_i 
-		sprite px py 5
-		px += stride	
-		i := bcd_smallnum
-		v1 := 2
-		i += v1
-		load v0
-		:call 3_by_5_font_i 
-		sprite px py 5
+    i := bcd_smallnum
+    bcd v1
+    load v0
+    load v0
+    :call 3_by_5_font_i
+    sprite px py 5
+    px += stride
+    i := bcd_smallnum
+    v1 := 2
+    i += v1
+    load v0
+    :call 3_by_5_font_i
+    sprite px py 5
 return
 
 : draw_fullscreen_tiles
-	py := 0
-	tile_size := 8	
-	loop
-		:call draw_fullscreen_tile_row
-		py += tile_size
-		if py < 32 begin
-			again
-		end
+    py := 0
+    tile_size := 8
+    loop
+        :call draw_fullscreen_tile_row
+        py += tile_size
+        if py < 32 begin
+            again
+        end
 return
 
 : draw_fullscreen_tile_row
-	px := 0
-	loop
-		sprite px py 8 
-		px += 8 
-		i += tile_size
-		if px < 64 begin
-			again
-		end
+    px := 0
+    loop
+        sprite px py 8
+        px += 8
+        i += tile_size
+        if px < 64 begin
+            again
+        end
 return
 
 
 : title_screen
-	# display title screen
-	i := sprite_title_screen 
-	:call draw_fullscreen_tiles
+    # display title screen
+    i := sprite_title_screen
+    :call draw_fullscreen_tiles
 
-	# wait for any key press
-	va := OCTO_KEY_W
-	vb := 30 
-	i := sprite_title_exclamation 
-	px := 60
-	py := 2
-	loop
-		# check for key press
-		if va key begin
-			# erase the screen
-			clear
-			return
-		end
-		# blink exclamation point on delay if no key press
-		v0 := delay
-		if v0 == 0 begin
-			delay := vb 
-			sprite px py 8
-		end
-		again
+    # wait for any key press
+    va := OCTO_KEY_W
+    vb := 30
+    i := sprite_title_exclamation
+    px := 60
+    py := 2
+    loop
+        # check for key press
+        if va key begin
+            # erase the screen
+            clear
+            return
+        end
+        # blink exclamation point on delay if no key press
+        v0 := delay
+        if v0 == 0 begin
+            delay := vb
+            sprite px py 8
+        end
+        again
 return
 
-	
+
 : sprite_title_screen
-	0xFF 0x80 0x80 0x80 0x80 0x87 0x8C 0x98 0xFF 0x00 0x00 0x00 0x00 0x80 0xC0 0x40 0xFF 0x00 0x00 0x40 0x40 0x40 0x40 0x40 0xFE 0x03 0x01 0x00 0x00 0x00 0x04 0x04
-	0x7F 0xC0 0x80 0x00 0x00 0x20 0x20 0x20 0xFF 0x00 0x00 0x00 0x00 0x00 0x38 0x28 0xFF 0x80 0xA8 0xBA 0xAA 0x80 0x84 0xC5 0xFF 0x01 0xED 0x4D 0x4D 0x0D 0x4D 0x41
-	0x90 0x90 0x90 0x99 0x8F 0x80 0xC0 0x60 0x54 0x5C 0xDD 0x97 0x00 0x00 0x00 0x00 0x40 0x68 0x2C 0x26 0x23 0x21 0x01 0x05 0x84 0x87 0x9E 0x82 0x82 0x02 0x02 0x02
-	0x6C 0xEE 0x3A 0x33 0x11 0x11 0x10 0x00 0x38 0xF0 0x21 0x2F 0x38 0xC0 0x00 0x00 0x62 0x38 0x0F 0x00 0x00 0x00 0x00 0x00 0x8D 0x0D 0x81 0xFF 0x01 0x01 0x03 0x06
-	0x60 0xC0 0x80 0x80 0x9E 0x92 0x96 0x9E 0x00 0x00 0x00 0x00 0x6E 0xAA 0xEE 0x00 0x07 0x00 0x20 0x20 0xE0 0xA0 0xA0 0xE1 0x00 0x00 0x00 0x00 0x20 0x20 0x2B 0xE2
-	0x00 0x00 0x08 0x0C 0x06 0x03 0x81 0x80 0x00 0x23 0x25 0x25 0x65 0x45 0xC0 0xBA 0x00 0x6E 0x44 0x64 0x44 0x6E 0x00 0xBB 0x06 0x83 0x81 0x81 0x81 0xE1 0x01 0x81
-	0x82 0x82 0x92 0x9E 0x80 0x80 0x80 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x01 0x01 0x01 0x01 0x00 0x00 0x00 0xFF 0x2B 0x2A 0x2B 0xE0 0x00 0x01 0x03 0xFE
-	0x80 0x10 0xF0 0x00 0x00 0x80 0xC0 0x7F 0xAA 0xAA 0xAA 0xBB 0x00 0x00 0x00 0xFF 0xAA 0xAA 0xAA 0xAB 0x00 0x00 0x00 0xFF 0x01 0xC1 0x41 0xC1 0x01 0x01 0x01 0xFF
-	
+    0xFF 0x80 0x80 0x80 0x80 0x87 0x8C 0x98 0xFF 0x00 0x00 0x00 0x00 0x80 0xC0 0x40 0xFF 0x00 0x00 0x40 0x40 0x40 0x40 0x40 0xFE 0x03 0x01 0x00 0x00 0x00 0x04 0x04
+    0x7F 0xC0 0x80 0x00 0x00 0x20 0x20 0x20 0xFF 0x00 0x00 0x00 0x00 0x00 0x38 0x28 0xFF 0x80 0xA8 0xBA 0xAA 0x80 0x84 0xC5 0xFF 0x01 0xED 0x4D 0x4D 0x0D 0x4D 0x41
+    0x90 0x90 0x90 0x99 0x8F 0x80 0xC0 0x60 0x54 0x5C 0xDD 0x97 0x00 0x00 0x00 0x00 0x40 0x68 0x2C 0x26 0x23 0x21 0x01 0x05 0x84 0x87 0x9E 0x82 0x82 0x02 0x02 0x02
+    0x6C 0xEE 0x3A 0x33 0x11 0x11 0x10 0x00 0x38 0xF0 0x21 0x2F 0x38 0xC0 0x00 0x00 0x62 0x38 0x0F 0x00 0x00 0x00 0x00 0x00 0x8D 0x0D 0x81 0xFF 0x01 0x01 0x03 0x06
+    0x60 0xC0 0x80 0x80 0x9E 0x92 0x96 0x9E 0x00 0x00 0x00 0x00 0x6E 0xAA 0xEE 0x00 0x07 0x00 0x20 0x20 0xE0 0xA0 0xA0 0xE1 0x00 0x00 0x00 0x00 0x20 0x20 0x2B 0xE2
+    0x00 0x00 0x08 0x0C 0x06 0x03 0x81 0x80 0x00 0x23 0x25 0x25 0x65 0x45 0xC0 0xBA 0x00 0x6E 0x44 0x64 0x44 0x6E 0x00 0xBB 0x06 0x83 0x81 0x81 0x81 0xE1 0x01 0x81
+    0x82 0x82 0x92 0x9E 0x80 0x80 0x80 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x01 0x01 0x01 0x01 0x00 0x00 0x00 0xFF 0x2B 0x2A 0x2B 0xE0 0x00 0x01 0x03 0xFE
+    0x80 0x10 0xF0 0x00 0x00 0x80 0xC0 0x7F 0xAA 0xAA 0xAA 0xBB 0x00 0x00 0x00 0xFF 0xAA 0xAA 0xAA 0xAB 0x00 0x00 0x00 0xFF 0x01 0xC1 0x41 0xC1 0x01 0x01 0x01 0xFF
+
 : sprite_title_exclamation
-	0xC0 0xC0 0xC0 0xC0 0xC0 0x00 0xC0 0xC0
-	
+    0xC0 0xC0 0xC0 0xC0 0xC0 0x00 0xC0 0xC0
+
 : main
-		#:call title_screen
-		
-		# initialize delay
-		v0 := 255
-		delay := v0 
-		
+    :call title_screen
+
+    # initialize delay
+    v0 := 255
+    delay := v0
+
     # Initialize score to 000
     i := result
     no_erase_flag := 1
     :call draw_bignum
     no_erase_flag := 0
-		
-		# initialize resource counts
-		i := count_emerson
-		load v7
-		:call draw_resource
-		i := count_emerson
-		save v7
 
-		i := count_lake
-		load v7
-		:call draw_resource
-		i := count_lake
-		save v7 
+    # initialize resource counts
+    i := count_emerson
+    load v7
+    :call draw_resource
+    i := count_emerson
+    save v7
 
-		i := count_palmer
-		load v7
-		:call draw_resource
-		i := count_palmer
-		save v7 
+    i := count_lake
+    load v7
+    :call draw_resource
+    i := count_lake
+    save v7
 
-		i := count_crosby
-		load v7
-		:call draw_resource
-		i := count_crosby
-		save v7 
+    i := count_palmer
+    load v7
+    :call draw_resource
+    i := count_palmer
+    save v7
+
+    i := count_crosby
+    load v7
+    :call draw_resource
+    i := count_crosby
+    save v7
 
 
-		i := count_stills
-		load v7
-		:call draw_resource
-		i := count_stills
-		save v7 
+    i := count_stills
+    load v7
+    :call draw_resource
+    i := count_stills
+    save v7
 
-		i := count_nash
-		load v7
-		:call draw_resource
-		i := count_nash
-		save v7 
-		
-		loop 
-			# subtract delay
-			ticks_since_last_frame := 255
-			v1 := delay
-			delay := ticks_since_last_frame #reset delay timer using 255 
-			ticks_since_last_frame -= v1
-			
-			# process resource keys
-			v0 := OCTO_KEY_Q
-			if v0 key begin
-				i := count_emerson
-				load v7
-				vf := 0
-				cooldown -= ticks_since_last_frame
-				if vf > 0  then cooldown := 0 # prevent underflow of cooldown
-				if cooldown == 0 begin
-					v0 += 1
-					if v0 > 99 then v0 := 99 # prevent overflow
-					:call draw_resource
-					i :=  count_emerson
-					vf := 60
-					cooldown := vf
-					save v7
-				end
-			end
-			
-			v0 := OCTO_KEY_W
-			if v0 key begin
-				i := count_lake
-				load v7
-				cooldown -= ticks_since_last_frame
-				v0 += 1
-				if v0 > 99 then v0 := 99 # prevent overflow
-				:call draw_resource
-				i :=  count_lake
-				save v7
-			end
-			
-			v0 := OCTO_KEY_E
-			if v0 key begin
-				i := count_palmer
-				load v7
-				v0 += 1
-				if v0 > 99 then v0 := 99 # prevent overflow
-				:call draw_resource
-				i :=  count_palmer
-				save v7
-			end
-			
-			v0 := OCTO_KEY_A
-			if v0 key begin
-				i := count_crosby
-				load v7
-				v0 += 1
-				if v0 > 99 then v0 := 99 # prevent overflow
-				:call draw_resource
-				i :=  count_crosby
-				save v7
-			end
-			
-			v0 := OCTO_KEY_S
-			if v0 key begin
-				i := count_stills
-				load v7
-				v0 += 1
-				if v0 > 99 then v0 := 99 # prevent overflow
-				:call draw_resource
-				i :=  count_stills
-				save v7
-			end
-			
-			v0 := OCTO_KEY_D
-			if v0 key begin
-				i := count_nash
-				load v7
-				v0 += 1
-				if v0 > 99 then v0 := 99 # prevent overflow
-				:call draw_resource
-				i :=  count_nash
-				save v7
-			end
-			
-			# store result as left operand 
-			# we have to do some register dancing here to avoid clobbering the delay global
-			# this probably won't be necessary in the final version because everything for
-			# the bignum will be calculated from the resource counts and not the actual delay
-			# value
-			va := ticks_since_last_frame
-			i := result
-			load v9
-			i := left_operand
-			save v9
-			ticks_since_last_frame := va
-			
-			
-			# save delay difference as right operand
-			v1 := 7 
-			i := right_operand
-			i += v1
-			bcd ticks_since_last_frame 
-			
-			# add timer
-			:call add_bignum
+    i := count_nash
+    load v7
+    :call draw_resource
+    i := count_nash
+    save v7
 
-			# display new result
-			:call draw_bignum
+    loop
+        # subtract delay
+        ticks_since_last_frame := 255
+        v1 := delay
+        delay := ticks_since_last_frame #reset delay timer using 255
+        ticks_since_last_frame -= v1
 
-			# copy result to old_result
-			i := result
-			load v9
-			i := old_result
-			save v9
-			
-		again
+        # process resource keys
+        v0 := OCTO_KEY_Q
+        if v0 key begin
+            i := count_emerson
+            load v7
+            vf := 0
+            cooldown -= ticks_since_last_frame
+            if vf > 0  then cooldown := 0 # prevent underflow of cooldown
+            if cooldown == 0 begin
+                v0 += 1
+                if v0 > 99 then v0 := 99 # prevent overflow
+                :call draw_resource
+                i :=  count_emerson
+                vf := 60
+                cooldown := vf
+                save v7
+            end
+        end
+
+        v0 := OCTO_KEY_W
+        if v0 key begin
+            i := count_lake
+            load v7
+            cooldown -= ticks_since_last_frame
+            v0 += 1
+            if v0 > 99 then v0 := 99 # prevent overflow
+            :call draw_resource
+            i :=  count_lake
+            save v7
+        end
+
+        v0 := OCTO_KEY_E
+        if v0 key begin
+            i := count_palmer
+            load v7
+            v0 += 1
+            if v0 > 99 then v0 := 99 # prevent overflow
+            :call draw_resource
+            i :=  count_palmer
+            save v7
+        end
+
+        v0 := OCTO_KEY_A
+        if v0 key begin
+            i := count_crosby
+            load v7
+            v0 += 1
+            if v0 > 99 then v0 := 99 # prevent overflow
+            :call draw_resource
+            i :=  count_crosby
+            save v7
+        end
+
+        v0 := OCTO_KEY_S
+        if v0 key begin
+            i := count_stills
+            load v7
+            v0 += 1
+            if v0 > 99 then v0 := 99 # prevent overflow
+            :call draw_resource
+            i :=  count_stills
+            save v7
+        end
+
+        v0 := OCTO_KEY_D
+        if v0 key begin
+            i := count_nash
+            load v7
+            v0 += 1
+            if v0 > 99 then v0 := 99 # prevent overflow
+            :call draw_resource
+            i :=  count_nash
+            save v7
+        end
+
+        # store result as left operand
+        # we have to do some register dancing here to avoid clobbering the delay global
+        # this probably won't be necessary in the final version because everything for
+        # the bignum will be calculated from the resource counts and not the actual delay
+        # value
+        va := ticks_since_last_frame
+        i := result
+        load v9
+        i := left_operand
+        save v9
+        ticks_since_last_frame := va
+
+
+        # save delay difference as right operand
+        v1 := 7
+        i := right_operand
+        i += v1
+        bcd ticks_since_last_frame
+
+        # add timer
+        :call add_bignum
+
+        # display new result
+        :call draw_bignum
+
+        # copy result to old_result
+        i := result
+        load v9
+        i := old_result
+        save v9
+
+        again
