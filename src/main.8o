@@ -236,7 +236,6 @@ return
 
 : tick_count
     0
-
 : min_bignum
     0 0 0 0 0 0 0 0 0 0
 : max_bignum
@@ -268,30 +267,30 @@ return
 :alias sprite_y v4
 :alias count_x v5
 :alias count_y v6
-:alias cooldown v7
+:alias max_resource v7
 
 : count_emerson
-    04 00 00 01 01 12 04 00
+    01 00 00 01 01 12 04 42
 : sprite_emerson
     0xDF 0x95 0xD5 0x95 0xD1 0x00 0xDB 0x95 0x95 0xB5
 : count_lake
-    08 00 00 23 01 33 04 00
+    01 00 00 23 01 33 04 23
 : sprite_lake
     0x80 0x80 0x80 0x80 0xE0 0x09 0x0A 0x0C 0x0A 0x09
 : count_palmer
-    15 00 00 45 01 55 04 00
+    00 00 00 45 01 55 04 16
 : sprite_palmer
     0xE8 0xA8 0xE8 0x88 0x8E 0x00 0xF3 0xAA 0xAA 0x8A
 : count_crosby
-    16 00 00 01 14 12 17 00
+    00 00 00 01 14 12 17 15
 : sprite_crosby
     0xEE 0x89 0x8E 0xE9 0x00 0xEE 0x89 0xEE 0x29 0xEE
 : count_stills
-    23 00 00 23 14 33 17 00
+    00 00 00 23 14 33 17 8
 : sprite_stills
     0xEE 0x84 0xE4 0x24 0xE0 0x0E 0x88 0x8E 0x82 0xEE
 : count_nash
-    42 00 00 45 14 55 17 00
+    00 00 00 45 14 55 17 99
 : sprite_nash
     0x62 0x52 0x4A 0x46 0x00 0xE9 0x89 0xEF 0x29 0xE9
 
@@ -418,7 +417,13 @@ return
     0xC0 0xC0 0xC0 0xC0 0xC0 0x00 0xC0 0xC0
 
 : main
-    :call title_screen
+    #:call title_screen
+
+    # increase the cooldown for the W key so it doesn't cause problems by
+    # having been pressed on the title screen
+    i := button_cooldowns
+    v1 := 10
+    save v5
 
     # initialize delay
     v0 := 255
@@ -495,15 +500,17 @@ return
         i := button_cooldowns
         save v5
 
-        # process resource keys
+        # process crosby
         if v0 == 0 begin
             vf := OCTO_KEY_Q
             if vf key begin
                 # increment resource
                 i := count_emerson
                 load v7
-                v0 += 1
-                if v0 > 99 then v0 := 99 # prevent overflow
+                current_count += 1
+                if current_count > max_resource begin
+                    current_count := max_resource
+                end
                 :call draw_resource
                 i := count_emerson
                 save v7
@@ -517,108 +524,58 @@ return
             end
         end
 
+        # process stills
         if v1 == 0 begin
             vf := OCTO_KEY_W
             if vf key begin
-                # increment resource
-                i := count_lake
+                # make sure user has enough resources
+                i := count_emerson
                 load v7
-                v0 += 1
-                if v0 > 99 then v0 := 99 # prevent overflow
-                :call draw_resource
-                i := count_lake
-                save v7
+                if current_count > 11 begin
+                    # update spent resource count
+                    current_count -= 12
 
-                # update cooldown
-                i := button_cooldowns
-                load v5
-                v1 := 5
-                i := button_cooldowns
-                save v5
-            end
-        end
+                    #update max resource for spent resource
+                    max_resource += 4
+                    if max_resource > 99 then max_resource := 99
 
-        if v2 == 0 begin
-            vf := OCTO_KEY_E
-            if vf key begin
-                # increment resource
-                i := count_palmer
-                load v7
-                v0 += 1
-                if v0 > 99 then v0 := 99 # prevent overflow
-                :call draw_resource
-                i := count_palmer
-                save v7
+                    # draw spent resource
+                    :call draw_resource
+                    i := count_emerson
+                    save v7
 
-                # update cooldown
-                i := button_cooldowns
-                load v5
-                v2 := 5
-                i := button_cooldowns
-                save v5
-            end
-        end
+                    # add to new resource
+                    i := count_lake
+                    load v7
+                    current_count += 1
+                    if current_count > max_resource begin
+                        current_count := max_resource
+                    end
 
-        if v3 == 0 begin
-            vf := OCTO_KEY_A
-            if vf key begin
-                # increment resource
-                i := count_crosby
-                load v7
-                v0 += 1
-                if v0 > 99 then v0 := 99 # prevent overflow
-                :call draw_resource
-                i := count_crosby
-                save v7
+                    # save current state of resource
+                    :call draw_resource
+                    i := count_lake
+                    save v7
 
-                # update cooldown
-                i := button_cooldowns
-                load v5
-                v3 := 5
-                i := button_cooldowns
-                save v5
-            end
-        end
+                    # check if we should enable next resource
+                    if max_resource < 24 begin
+                        if current_count > 6 begin
+                            i := count_palmer
+                            load v7
+                            current_count := 1
+                            :call draw_resource
+                            i := count_palmer
+                            save v7
+                        end
+                    end
 
-        if v4 == 0 begin
-            vf := OCTO_KEY_S
-            if vf key begin
-                # increment resource
-                i := count_stills
-                load v7
-                v0 += 1
-                if v0 > 99 then v0 := 99 # prevent overflow
-                :call draw_resource
-                i := count_stills
-                save v7
-
-                # update cooldown
-                i := button_cooldowns
-                load v5
-                v4 := 5
-                i := button_cooldowns
-                save v5
-            end
-        end
-
-        if v5 == 0 begin
-            vf := OCTO_KEY_D
-            if vf key begin
-                # increment resource
-                i := count_nash
-                load v7
-                v0 += 1
-                if v0 > 99 then v0 := 99 # prevent overflow
-                :call draw_resource
-                i := count_nash
-                save v7
-
-                # update cooldown
-                i := button_cooldowns
-                load v5
-                v5 := 5
-                i := button_cooldowns
-                save v5
+                    # update cooldown
+                    i := button_cooldowns
+                    load v5
+                    v1 := 5
+                    i := button_cooldowns
+                    save v5
+                end
             end
         end
 
