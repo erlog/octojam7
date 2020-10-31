@@ -257,6 +257,9 @@ return
 : max_smallnum
     99
 
+: button_cooldowns
+    0 0 0 0 0 0 # These are in order of Q W E A S D
+
 # The data in each count block acts as kind of a struct for tese aliases
 :alias current_count v0
 :alias old_count v1
@@ -415,7 +418,7 @@ return
     0xC0 0xC0 0xC0 0xC0 0xC0 0x00 0xC0 0xC0
 
 : main
-    :call title_screen
+    #:call title_screen
 
     # initialize delay
     v0 := 255
@@ -472,79 +475,38 @@ return
         delay := ticks_since_last_frame #reset delay timer using 255
         ticks_since_last_frame -= v1
 
+        # process key cooldowns
+        i := button_cooldowns
+        load v5
+
+        v0 -= ticks_since_last_frame
+        if vf == 0 begin
+            v0 := 0
+        end
+
+        i := button_cooldowns
+        save v5
+
         # process resource keys
-        v0 := OCTO_KEY_Q
-        if v0 key begin
-            i := count_emerson
-            load v7
-            vf := 0
-            cooldown -= ticks_since_last_frame
-            if vf > 0  then cooldown := 0 # prevent underflow of cooldown
-            if cooldown == 0 begin
+        if v0 == 0 begin
+            vf := OCTO_KEY_Q
+            if vf key begin
+                # increment resource
+                i := count_emerson
+                load v7
                 v0 += 1
                 if v0 > 99 then v0 := 99 # prevent overflow
                 :call draw_resource
-                i :=  count_emerson
-                vf := 60
-                cooldown := vf
+                i := count_emerson
                 save v7
+
+                # update cooldown
+                i := button_cooldowns
+                load v5
+                v0 := 5
+                i := button_cooldowns
+                save v5
             end
-        end
-
-        v0 := OCTO_KEY_W
-        if v0 key begin
-            i := count_lake
-            load v7
-            cooldown -= ticks_since_last_frame
-            v0 += 1
-            if v0 > 99 then v0 := 99 # prevent overflow
-            :call draw_resource
-            i :=  count_lake
-            save v7
-        end
-
-        v0 := OCTO_KEY_E
-        if v0 key begin
-            i := count_palmer
-            load v7
-            v0 += 1
-            if v0 > 99 then v0 := 99 # prevent overflow
-            :call draw_resource
-            i :=  count_palmer
-            save v7
-        end
-
-        v0 := OCTO_KEY_A
-        if v0 key begin
-            i := count_crosby
-            load v7
-            v0 += 1
-            if v0 > 99 then v0 := 99 # prevent overflow
-            :call draw_resource
-            i :=  count_crosby
-            save v7
-        end
-
-        v0 := OCTO_KEY_S
-        if v0 key begin
-            i := count_stills
-            load v7
-            v0 += 1
-            if v0 > 99 then v0 := 99 # prevent overflow
-            :call draw_resource
-            i :=  count_stills
-            save v7
-        end
-
-        v0 := OCTO_KEY_D
-        if v0 key begin
-            i := count_nash
-            load v7
-            v0 += 1
-            if v0 > 99 then v0 := 99 # prevent overflow
-            :call draw_resource
-            i :=  count_nash
-            save v7
         end
 
         # store result as left operand
