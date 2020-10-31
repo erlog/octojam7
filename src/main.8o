@@ -418,7 +418,7 @@ return
     0xC0 0xC0 0xC0 0xC0 0xC0 0x00 0xC0 0xC0
 
 : main
-    #:call title_screen
+    :call title_screen
 
     # initialize delay
     v0 := 255
@@ -480,9 +480,17 @@ return
         load v5
 
         v0 -= ticks_since_last_frame
-        if vf == 0 begin
-            v0 := 0
-        end
+        if vf == 0 then v0 := 0
+        v1 -= ticks_since_last_frame
+        if vf == 0 then v1 := 0
+        v2 -= ticks_since_last_frame
+        if vf == 0 then v2 := 0
+        v3 -= ticks_since_last_frame
+        if vf == 0 then v3 := 0
+        v4 -= ticks_since_last_frame
+        if vf == 0 then v4 := 0
+        v5 -= ticks_since_last_frame
+        if vf == 0 then v5 := 0
 
         i := button_cooldowns
         save v5
@@ -504,6 +512,111 @@ return
                 i := button_cooldowns
                 load v5
                 v0 := 5
+                i := button_cooldowns
+                save v5
+            end
+        end
+
+        if v1 == 0 begin
+            vf := OCTO_KEY_W
+            if vf key begin
+                # increment resource
+                i := count_lake
+                load v7
+                v0 += 1
+                if v0 > 99 then v0 := 99 # prevent overflow
+                :call draw_resource
+                i := count_lake
+                save v7
+
+                # update cooldown
+                i := button_cooldowns
+                load v5
+                v1 := 5
+                i := button_cooldowns
+                save v5
+            end
+        end
+
+        if v2 == 0 begin
+            vf := OCTO_KEY_E
+            if vf key begin
+                # increment resource
+                i := count_palmer
+                load v7
+                v0 += 1
+                if v0 > 99 then v0 := 99 # prevent overflow
+                :call draw_resource
+                i := count_palmer
+                save v7
+
+                # update cooldown
+                i := button_cooldowns
+                load v5
+                v2 := 5
+                i := button_cooldowns
+                save v5
+            end
+        end
+
+        if v3 == 0 begin
+            vf := OCTO_KEY_A
+            if vf key begin
+                # increment resource
+                i := count_crosby
+                load v7
+                v0 += 1
+                if v0 > 99 then v0 := 99 # prevent overflow
+                :call draw_resource
+                i := count_crosby
+                save v7
+
+                # update cooldown
+                i := button_cooldowns
+                load v5
+                v3 := 5
+                i := button_cooldowns
+                save v5
+            end
+        end
+
+        if v4 == 0 begin
+            vf := OCTO_KEY_S
+            if vf key begin
+                # increment resource
+                i := count_stills
+                load v7
+                v0 += 1
+                if v0 > 99 then v0 := 99 # prevent overflow
+                :call draw_resource
+                i := count_stills
+                save v7
+
+                # update cooldown
+                i := button_cooldowns
+                load v5
+                v4 := 5
+                i := button_cooldowns
+                save v5
+            end
+        end
+
+        if v5 == 0 begin
+            vf := OCTO_KEY_D
+            if vf key begin
+                # increment resource
+                i := count_nash
+                load v7
+                v0 += 1
+                if v0 > 99 then v0 := 99 # prevent overflow
+                :call draw_resource
+                i := count_nash
+                save v7
+
+                # update cooldown
+                i := button_cooldowns
+                load v5
+                v5 := 5
                 i := button_cooldowns
                 save v5
             end

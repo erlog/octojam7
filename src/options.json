@@ -1,5 +1,5 @@
 {
-    "tickrate": 500,
+    "tickrate": 10000,
 	"fillColor": "#3D8026",
 	"fillColor2": "#ABCC47",
 	"blendColor": "#00131A",
