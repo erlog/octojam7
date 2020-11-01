@@ -491,51 +491,64 @@ return
     :call draw_bignum
     no_erase_flag := 0
 
-    # decide final message
-    i := result
-    load v9
+    # stack up final resource counts
+    i := count_nash
+    load v0
+    v5 := v0
+    i := count_stills
+    load v0
+    v4 := v0
+    i := count_crosby
+    load v0
+    v3 := v0
+    i := count_palmer
+    load v0
+    v2 := v0
+    i := count_lake
+    load v0
+    v1 := v0
+    i := count_emerson
+    load v0
 
-    # hitting no buttons
-    if v0 < 1 begin
-        if v1 < 1 begin
-            if v2 < 1 begin
-                if v3 < 1 begin
-                    if v4 < 1 begin
-                        if v5 < 1 begin
-                            :call end_game_over
-                        end
-                    end
-                end
-            end
+    # you win
+    if v5 > 1 begin
+        :call end_you_win
+    end
+
+    # find nash
+    if v4 > 0 begin
+        if v5 == 0 begin
+            :call end_min_nash
         end
     end
 
-    # 99 emersons
-    if v0 < 1 begin
-        if v1 < 1 begin
-            if v2 < 1 begin
-                if v3 < 1 begin
-                    if v4 < 1 begin
-                        :call end_99_emersons
-                    end
-                end
-            end
-        end
+    # find crosby
+    if v3 == 1 begin
+        :call end_min_crosby
     end
 
-    # 99 crosbies, some stills, no nashes
-    if v0 < 6 begin
-        :call end_99_crosbies
+    # try hitting e
+    if v1 > 20 begin
+        :call end_max_lake
     end
 
-: ending_text_99_crosbies
-    text8 "ALMOST THERE!"
-: end_99_crosbies
-    px := 8
+    # try hitting w
+    if v0 > 40 begin
+        :call end_max_emersons
+    end
+
+    # try hitting q
+    :call end_game_over
+
+
+: ending_text_you_win
+    text8 "UNIVERSE SAVED"
+: end_you_win
+    px := 5
     py := 9
     iterator := 0
     loop
-        i := ending_text_99_crosbies
+        i := ending_text_you_win
         i += iterator
         load v0
         i := sprite_alphabet_font
@@ -543,16 +556,41 @@ return
         sprite px py 5
         iterator += 1
         px += 4
-        if iterator != 13 then again
+        if iterator != 14 then again
 
-: ending_text_99_emersons
-    text8 "NEED CROSBY!"
-: end_99_emersons
+    loop
+        again
+return
+
+: ending_text_min_nash
+    text8 "FIND NASH!"
+: end_min_nash
+    px := 14
+    py := 9
+    iterator := 0
+    loop
+        i := ending_text_min_nash
+        i += iterator
+        load v0
+        i := sprite_alphabet_font
+        i += v0
+        sprite px py 5
+        iterator += 1
+        px += 4
+        if iterator != 10 then again
+
+    loop
+        again
+return
+
+: ending_text_min_crosby
+    text8 "FIND CROSBY!"
+: end_min_crosby
     px := 9
     py := 9
     iterator := 0
     loop
-        i := ending_text_99_emersons
+        i := ending_text_min_crosby
         i += iterator
         load v0
         i := sprite_alphabet_font
@@ -561,6 +599,48 @@ return
         iterator += 1
         px += 4
         if iterator != 12 then again
+
+    loop
+        again
+return
+
+: ending_text_max_lake
+    text8 "E KEY GO BRRR!"
+: end_max_lake
+    px := 5
+    py := 9
+    iterator := 0
+    loop
+        i := ending_text_max_lake
+        i += iterator
+        load v0
+        i := sprite_alphabet_font
+        i += v0
+        sprite px py 5
+        iterator += 1
+        px += 4
+        if iterator != 14 then again
+
+    loop
+        again
+return
+
+: ending_text_max_emersons
+    text8 "HIT W TOO THO!"
+: end_max_emersons
+    px := 5
+    py := 9
+    iterator := 0
+    loop
+        i := ending_text_max_emersons
+        i += iterator
+        load v0
+        i := sprite_alphabet_font
+        i += v0
+        sprite px py 5
+        iterator += 1
+        px += 4
+        if iterator != 14 then again
 
     loop
         again
