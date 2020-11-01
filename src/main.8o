@@ -398,7 +398,6 @@ return
         end
 return
 
-
 : title_screen
     # display title screen
     i := sprite_title_screen
@@ -425,6 +424,40 @@ return
         end
         again
 return
+
+:stringmode text8 "ABCDEFGHIJKLMNOPQRSTUVWXYZ !" {
+	:byte { 5 * VALUE }
+}
+
+: sprite_alphabet_font
+    0xE0 0xA0 0xE0 0xA0 0xA0 #A
+    0xC0 0xA0 0xE0 0xA0 0xC0 #B
+    0xE0 0xA0 0x80 0xA0 0xE0 #C
+    0xC0 0xA0 0xA0 0xA0 0xC0 #D
+    0xE0 0x80 0xE0 0x80 0xE0 #E
+    0xE0 0x80 0xE0 0x80 0x80 #F
+    0xC0 0x80 0xA0 0xA0 0xE0 #G
+    0xA0 0xA0 0xE0 0xA0 0xA0 #H
+    0xE0 0x40 0x40 0x40 0xE0 #I
+    0x20 0x20 0x20 0xA0 0xE0 #J
+    0xA0 0xA0 0xC0 0xA0 0xA0 #K
+    0x80 0x80 0x80 0x80 0xE0 #L
+    0xA0 0xE0 0xE0 0xA0 0xA0 #M
+    0x60 0xA0 0xA0 0xA0 0xA0 #N
+    0xE0 0xA0 0xA0 0xA0 0xE0 #O
+    0xE0 0xA0 0xE0 0x80 0x80 #P
+    0xE0 0xA0 0xA0 0xC0 0x20 #Q
+    0xC0 0xA0 0xC0 0xA0 0xA0 #R
+    0xE0 0x80 0xE0 0x20 0xE0 #S
+    0xE0 0x40 0x40 0x40 0x40 #T
+    0xA0 0xA0 0xA0 0xA0 0xE0 #U
+    0xA0 0xA0 0xA0 0xA0 0x40 #V
+    0xA0 0xA0 0xE0 0xE0 0xA0 #W
+    0xA0 0xA0 0x40 0xA0 0xA0 #X
+    0xA0 0xA0 0xE0 0x40 0x40 #Y
+    0xE0 0x20 0x40 0x80 0xE0 #Z
+    0x00 0x00 0x00 0x00 0x00 #
+    0x40 0x40 0x40 0x00 0x40 #!
 
 : game_ending
     clear
@@ -458,8 +491,86 @@ return
     :call draw_bignum
     no_erase_flag := 0
 
-    px := 1
-    py := 1
+    # decide final message
+    i := result
+    load v9
+
+    # hitting no buttons
+    if v0 < 1 begin
+        if v1 < 1 begin
+            if v2 < 1 begin
+                if v3 < 1 begin
+                    if v4 < 1 begin
+                        if v5 < 1 begin
+                            :call end_game_over
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    # 99 emersons
+    if v0 < 1 begin
+        if v1 < 1 begin
+            if v2 < 1 begin
+                if v3 < 1 begin
+                    if v4 < 1 begin
+                        :call end_99_emersons
+                    end
+                end
+            end
+        end
+    end
+
+    # 99 crosbies, some stills, no nashes
+    if v0 < 6 begin
+        :call end_99_crosbies
+    end
+
+: ending_text_99_crosbies
+    text8 "ALMOST THERE!"
+: end_99_crosbies
+    px := 8
+    py := 9
+    iterator := 0
+    loop
+        i := ending_text_99_crosbies
+        i += iterator
+        load v0
+        i := sprite_alphabet_font
+        i += v0
+        sprite px py 5
+        iterator += 1
+        px += 4
+        if iterator != 13 then again
+
+: ending_text_99_emersons
+    text8 "NEED CROSBY!"
+: end_99_emersons
+    px := 9
+    py := 9
+    iterator := 0
+    loop
+        i := ending_text_99_emersons
+        i += iterator
+        load v0
+        i := sprite_alphabet_font
+        i += v0
+        sprite px py 5
+        iterator += 1
+        px += 4
+        if iterator != 12 then again
+
+    loop
+        again
+return
+
+: ending_text_game_over
+    text8 "TRY HITTING Q!"
+: end_game_over
+    px := 6
+    py := 9
     iterator := 0
     loop
         i := ending_text_game_over
@@ -470,47 +581,11 @@ return
         sprite px py 5
         iterator += 1
         px += 4
-        if iterator != 10 then again
+        if iterator != 14 then again
 
     loop
         again
-
-:stringmode text8 "ABCDEFGHIJKLMNOPQRSTUVWXYZ !" {
-	:byte { 5 * VALUE }
-}
-
-: ending_text_game_over
-    text8 "GAME OVER!"
-
-: sprite_alphabet_font
-    0xE0 0xA0 0xE0 0xA0 0xA0 #A
-    0xC0 0xA0 0xE0 0xA0 0xC0 #B
-    0xE0 0xA0 0x80 0xA0 0xE0 #C
-    0xC0 0xA0 0xA0 0xA0 0xC0 #D
-    0xE0 0x80 0xE0 0x80 0xE0 #E
-    0xE0 0x80 0xE0 0x80 0x80 #F
-    0xC0 0x80 0xA0 0xA0 0xE0 #G
-    0xA0 0xA0 0xE0 0xA0 0xA0 #H
-    0xE0 0x40 0x40 0x40 0xE0 #I
-    0x20 0x20 0x20 0xA0 0xE0 #J
-    0xA0 0xA0 0xC0 0xA0 0xA0 #K
-    0x80 0x80 0x80 0x80 0xE0 #L
-    0xA0 0xE0 0xE0 0xA0 0xA0 #M
-    0x60 0xA0 0xA0 0xA0 0xA0 #N
-    0xE0 0xA0 0xA0 0xA0 0xE0 #O
-    0xE0 0xA0 0xE0 0x80 0x80 #P
-    0xE0 0xA0 0xA0 0xC0 0x20 #Q
-    0xC0 0xA0 0xC0 0xA0 0xA0 #R
-    0xE0 0x80 0xE0 0x20 0xE0 #S
-    0xE0 0x40 0x40 0x40 0x40 #T
-    0xA0 0xA0 0xA0 0xA0 0xE0 #U
-    0xA0 0xA0 0xA0 0xA0 0x40 #V
-    0xA0 0xA0 0xE0 0xE0 0xA0 #W
-    0xA0 0xA0 0x40 0xA0 0xA0 #X
-    0xA0 0xA0 0xE0 0x40 0x40 #Y
-    0xE0 0x20 0x40 0x80 0xE0 #Z
-    0x00 0x00 0x00 0x00 0x00 #
-    0x80 0x80 0x80 0x00 0x80 #!
+return
 
 : sprite_title_screen
     0xFF 0x80 0x80 0x80 0x80 0x87 0x8C 0x98 0xFF 0x00 0x00 0x00 0x00 0x80 0xC0 0x40 0xFF 0x00 0x00 0x40 0x40 0x40 0x40 0x40 0xFE 0x03 0x01 0x00 0x00 0x00 0x04 0x04
@@ -805,7 +880,7 @@ return
                     # update cooldown
                     i := timers
                     load v7
-                    v1 := 4
+                    v2 := 2
                     i := timers
                     save v7
                 end
@@ -813,7 +888,7 @@ return
         end
 
         # process crosby
-        if v2 == 0 begin
+        if v3 == 0 begin
             vf := OCTO_KEY_A
             if vf key begin
                 # make sure user has enough resources
@@ -848,7 +923,7 @@ return
                     save v7
 
                     # check if we should enable next resource
-                    if max_resource < 24 begin
+                    if max_resource < 17 begin
                         if current_count > 6 begin
                             i := count_stills
                             load v7
@@ -862,7 +937,7 @@ return
                     # update cooldown
                     i := timers
                     load v7
-                    v1 := 5
+                    v3 := 1
                     i := timers
                     save v7
                 end
@@ -870,7 +945,7 @@ return
         end
 
         # process stills
-        if v2 == 0 begin
+        if v4 == 0 begin
             vf := OCTO_KEY_S
             if vf key begin
                 # make sure user has enough resources
@@ -919,7 +994,7 @@ return
                     # update cooldown
                     i := timers
                     load v7
-                    v1 := 6
+                    v4 := 1
                     i := timers
                     save v7
                 end
@@ -927,16 +1002,16 @@ return
         end
 
         # process nash
-        if v2 == 0 begin
+        if v5 == 0 begin
             vf := OCTO_KEY_D
             if vf key begin
                 # make sure user has enough resources
                 i := count_stills
                 load v7
-                if current_count > 49 begin
+                if current_count > 4 begin
                     # update spent resource count
                     if current_count != 99 begin
-                        current_count -= 50
+                        current_count -= 5
                     end
 
                     #update max resource for spent resource
@@ -964,7 +1039,7 @@ return
                     # update cooldown
                     i := timers
                     load v7
-                    v1 := 10
+                    v5 := 1
                     i := timers
                     save v7
                 end
@@ -991,7 +1066,7 @@ return
         i := count_emerson
         load v0
         if v0 > 63 begin
-            v1 := 8
+            v1 := 9
             i := right_operand
             i += v1
             load v0
@@ -1004,8 +1079,8 @@ return
         # process additional score from crosby
         i := count_crosby
         load v0
-        if v0 > 63 begin
-            v1 := 7
+        if v0 > 16 begin
+            v1 := 8
             i := right_operand
             i += v1
             load v0
@@ -1018,8 +1093,8 @@ return
         # process additional score from stills
         i := count_stills
         load v0
-        if v0 > 63 begin
-            v1 := 6
+        if v0 > 4 begin
+            v1 := 7
             i := right_operand
             i += v1
             load v0
@@ -1030,14 +1105,15 @@ return
         end
 
         # process additional score from nash
-        i := count_stills
+        i := count_nash
         load v0
-        if v0 > 63 begin
-            v1 := 5
+        if v0 > 0 begin
+            v2 := v0
+            v1 := 6
             i := right_operand
             i += v1
             load v0
-            v0 += 1
+            v0 += v2
             i := right_operand
             i += v1
             save v0
