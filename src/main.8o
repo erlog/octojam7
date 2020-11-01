@@ -16,9 +16,17 @@
 :const numwidth 10
 :const numwidth_minus_one 9
 
+:const line_y 24
+:const time_x 1
+:const time_y 26
+:const young_label_x 12
+:const young_label_y 27
+:const bignum_x 24
+:const bignum_y 26
+
 : draw_bignum
-    px := 12
-    py := 26
+    px := bignum_x
+    py := bignum_y
     iterator := 0
 
     loop
@@ -278,24 +286,31 @@ return
 : sprite_lake
     0x80 0x80 0x80 0x80 0xE0 0x09 0x0A 0x0C 0x0A 0x09
 : count_palmer
-    00 00 00 45 01 55 04 16
+    01 00 00 45 01 55 04 16
 : sprite_palmer
     0xE8 0xA8 0xE8 0x88 0x8E 0x00 0xF3 0xAA 0xAA 0x8A
 : count_crosby
-    00 00 00 01 14 12 17 15
+    01 00 00 01 13 12 16 15
 : sprite_crosby
     0xEE 0x89 0x8E 0xE9 0x00 0xEE 0x89 0xEE 0x29 0xEE
 : count_stills
-    00 00 00 23 14 33 17 8
+    01 00 00 23 13 33 16 8
 : sprite_stills
     0xEE 0x84 0xE4 0x24 0xE0 0x0E 0x88 0x8E 0x82 0xEE
 : count_nash
-    00 00 00 45 14 55 17 99
+    01 00 00 45 13 55 16 99
 : sprite_nash
     0x62 0x52 0x4A 0x46 0x00 0xE9 0x89 0xEF 0x29 0xE9
-
-: sprite_young
-    0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+: sprite_young_y
+    0xA0 0xE0 0x40 0x40
+: sprite_young_n
+    0x60 0xA0 0xA0 0xA0
+: sprite_young_g
+    0xC0 0x80 0xA0 0xE0
+: sprite_time_t
+    0xE0 0x40 0x40 0x40
+: sprite_line
+    0xFF
 
 : draw_resource
     # check if we should initialize resource
@@ -473,6 +488,36 @@ return
     i := count_nash
     save v7
 
+    # draw line
+    px := 0
+    py := line_y
+    i := sprite_line
+    loop
+        sprite px py 1
+        px += 8
+        if px != 64 begin
+            again
+        end
+
+    #initialize time
+    v1 := 88
+    px := time_x
+    py := time_y
+    :call draw_smallnum
+
+    # draw the sprite for young count
+    px := young_label_x
+    py := young_label_y
+    i := sprite_young_y
+    sprite px py 4
+    px += 4
+    i := sprite_young_n
+    sprite px py 4
+    px += 4
+    i := sprite_young_g
+    sprite px py 4
+
+
     loop
         # subtract delay
         ticks_since_last_frame := 255
@@ -603,6 +648,7 @@ return
 
         # display new result
         :call draw_bignum
+
 
         # copy result to old_result
         i := result
