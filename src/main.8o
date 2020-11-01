@@ -973,8 +973,6 @@ return
 
         # store result as left operand
         # we have to do some register dancing here to avoid clobbering the delay global
-        # this probably won't be necessary in the final version because everything for
-        # the bignum will be calculated from the resource counts and not the actual delay
         # value
         va := ticks_since_last_frame
         i := result
@@ -983,19 +981,73 @@ return
         save v9
         ticks_since_last_frame := va
 
-
-        # save delay difference as right operand
+        # save ticks since last frame as final 3 digits of right operand
         v1 := 7
         i := right_operand
         i += v1
         bcd ticks_since_last_frame
+
+        # process additional score from emerson
+        i := count_emerson
+        load v0
+        if v0 > 63 begin
+            v1 := 8
+            i := right_operand
+            i += v1
+            load v0
+            v0 += 1
+            i := right_operand
+            i += v1
+            save v0
+        end
+
+        # process additional score from crosby
+        i := count_crosby
+        load v0
+        if v0 > 63 begin
+            v1 := 7
+            i := right_operand
+            i += v1
+            load v0
+            v0 += 1
+            i := right_operand
+            i += v1
+            save v0
+        end
+
+        # process additional score from stills
+        i := count_stills
+        load v0
+        if v0 > 63 begin
+            v1 := 6
+            i := right_operand
+            i += v1
+            load v0
+            v0 += 1
+            i := right_operand
+            i += v1
+            save v0
+        end
+
+        # process additional score from nash
+        i := count_stills
+        load v0
+        if v0 > 63 begin
+            v1 := 5
+            i := right_operand
+            i += v1
+            load v0
+            v0 += 1
+            i := right_operand
+            i += v1
+            save v0
+        end
 
         # add timer
         :call add_bignum
 
         # display new result
         :call draw_bignum
-
 
         # copy result to old_result
         i := result
