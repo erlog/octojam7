@@ -264,8 +264,17 @@ return
 : max_smallnum
     99
 
-: button_cooldowns
-    0 0 0 0 0 0 # These are in order of Q W E A S D
+: timers
+    # These are in the following order:
+    # Key Q
+    # Key W
+    # Key E
+    # Key A
+    # Key S
+    # Key D
+    # Timer Accumulator
+    # Global Countdown Timer
+    0 0 0 0 0 0 0 88
 
 # The data in each count block acts as kind of a struct for tese aliases
 :alias current_count v0
@@ -294,7 +303,7 @@ return
 : sprite_crosby
     0xEE 0x89 0x8E 0xE9 0x00 0xEE 0x89 0xEE 0x29 0xEE
 : count_stills
-    00 00 00 23 13 33 16 8
+    00 00 00 23 13 33 16 50
 : sprite_stills
     0xEE 0x84 0xE4 0x24 0xE0 0x0E 0x88 0x8E 0x82 0xEE
 : count_nash
@@ -436,9 +445,9 @@ return
 
     # increase the cooldown for the W key so it doesn't cause problems by
     # having been pressed on the title screen
-    i := button_cooldowns
+    i := timers
     v1 := 10
-    save v5
+    save v6
 
     # initialize delay
     v0 := 255
@@ -500,7 +509,9 @@ return
         end
 
     #initialize time
-    v1 := 88
+    i := timers
+    load v7
+    v1 := v7
     px := time_x
     py := time_y
     :call draw_smallnum
@@ -525,9 +536,9 @@ return
         delay := ticks_since_last_frame #reset delay timer using 255
         ticks_since_last_frame -= v1
 
-        # process key cooldowns
-        i := button_cooldowns
-        load v5
+        # process timers
+        i := timers
+        load v7
 
         v0 -= ticks_since_last_frame
         if vf == 0 then v0 := 0
@@ -542,10 +553,45 @@ return
         v5 -= ticks_since_last_frame
         if vf == 0 then v5 := 0
 
-        i := button_cooldowns
-        save v5
+        #update global timer
+        v6 += ticks_since_last_frame
+        if v6 > 59 begin
+            # save old timer value
+            vb := v7
+            # calculate new timer value
+            loop
+                v7 -= 1
+                v6 -= 60
+                if v6 > 59 then again
+            i := timers
+            save v7
+            # check if game is over
+            if v7 == 0 begin
+                clear
+                loop
+                    again
+            end
+            # erase old time
+            v1 := vb
+            px := time_x
+            py := time_y
+            :call draw_smallnum
+            # draw new time
+            v1 := v7
+            px := time_x
+            py := time_y
+            :call draw_smallnum
+            # register dance to restore vb to original value
+            no_erase_flag := 0
+            i := timers
+            load v7
+        end
 
-        # process crosby
+        # save timers
+        i := timers
+        save v7
+
+        # process emerson
         if v0 == 0 begin
             vf := OCTO_KEY_Q
             if vf key begin
@@ -561,27 +607,29 @@ return
                 save v7
 
                 # update cooldown
-                i := button_cooldowns
-                load v5
-                v0 := 5
-                i := button_cooldowns
-                save v5
+                i := timers
+                load v7
+                v0 := 3
+                i := timers
+                save v7
             end
         end
 
-        # process stills
+        # process lake
         if v1 == 0 begin
             vf := OCTO_KEY_W
             if vf key begin
                 # make sure user has enough resources
                 i := count_emerson
                 load v7
-                if current_count > 11 begin
+                if current_count > 15 begin
                     # update spent resource count
-                    current_count -= 12
+                    if current_count != 99 begin
+                        current_count -= 16
+                    end
 
                     #update max resource for spent resource
-                    max_resource += 4
+                    max_resource += 6
                     if max_resource > 99 then max_resource := 99
 
                     # draw spent resource
@@ -615,11 +663,227 @@ return
                     end
 
                     # update cooldown
-                    i := button_cooldowns
-                    load v5
+                    i := timers
+                    load v7
+                    v1 := 3
+                    i := timers
+                    save v7
+                end
+            end
+        end
+
+        # process palmer
+        if v2 == 0 begin
+            vf := OCTO_KEY_E
+            if vf key begin
+                # make sure user has enough resources
+                i := count_lake
+                load v7
+                if current_count > 11 begin
+                    # update spent resource count
+                    if current_count != 99 begin
+                        current_count -= 12
+                    end
+
+                    #update max resource for spent resource
+                    max_resource += 4
+                    if max_resource > 99 then max_resource := 99
+
+                    # draw spent resource
+                    :call draw_resource
+                    i := count_lake
+                    save v7
+
+                    # add to new resource
+                    i := count_palmer
+                    load v7
+                    current_count += 1
+                    if current_count > max_resource begin
+                        current_count := max_resource
+                    end
+
+                    # save current state of resource
+                    :call draw_resource
+                    i := count_palmer
+                    save v7
+
+                    # check if we should enable next resource
+                    if max_resource < 17 begin
+                        if current_count > 6 begin
+                            i := count_crosby
+                            load v7
+                            current_count := 1
+                            :call draw_resource
+                            i := count_crosby
+                            save v7
+                        end
+                    end
+
+                    # update cooldown
+                    i := timers
+                    load v7
+                    v1 := 4
+                    i := timers
+                    save v7
+                end
+            end
+        end
+
+        # process crosby
+        if v2 == 0 begin
+            vf := OCTO_KEY_A
+            if vf key begin
+                # make sure user has enough resources
+                i := count_palmer
+                load v7
+                if current_count > 10 begin
+                    # update spent resource count
+                    if current_count != 99 begin
+                        current_count -= 11
+                    end
+
+                    #update max resource for spent resource
+                    max_resource += 3
+                    if max_resource > 98 then max_resource := 98
+
+                    # draw spent resource
+                    :call draw_resource
+                    i := count_palmer
+                    save v7
+
+                    # add to new resource
+                    i := count_crosby
+                    load v7
+                    current_count += 1
+                    if current_count > max_resource begin
+                        current_count := max_resource
+                    end
+
+                    # save current state of resource
+                    :call draw_resource
+                    i := count_crosby
+                    save v7
+
+                    # check if we should enable next resource
+                    if max_resource < 24 begin
+                        if current_count > 6 begin
+                            i := count_stills
+                            load v7
+                            current_count := 1
+                            :call draw_resource
+                            i := count_stills
+                            save v7
+                        end
+                    end
+
+                    # update cooldown
+                    i := timers
+                    load v7
                     v1 := 5
-                    i := button_cooldowns
-                    save v5
+                    i := timers
+                    save v7
+                end
+            end
+        end
+
+        # process stills
+        if v2 == 0 begin
+            vf := OCTO_KEY_S
+            if vf key begin
+                # make sure user has enough resources
+                i := count_crosby
+                load v7
+                if current_count > 10 begin
+                    # update spent resource count
+                    if current_count != 99 begin
+                        current_count -= 9
+                    end
+
+                    #update max resource for spent resource
+                    max_resource += 3
+                    if max_resource > 99 then max_resource := 99
+
+                    # draw spent resource
+                    :call draw_resource
+                    i := count_crosby
+                    save v7
+
+                    # add to new resource
+                    i := count_stills
+                    load v7
+                    current_count += 1
+                    if current_count > max_resource begin
+                        current_count := max_resource
+                    end
+
+                    # save current state of resource
+                    :call draw_resource
+                    i := count_stills
+                    save v7
+
+                    # check if we should enable next resource
+                    if max_resource < 24 begin
+                        if current_count > 6 begin
+                            i := count_nash
+                            load v7
+                            current_count := 1
+                            :call draw_resource
+                            i := count_nash
+                            save v7
+                        end
+                    end
+
+                    # update cooldown
+                    i := timers
+                    load v7
+                    v1 := 6
+                    i := timers
+                    save v7
+                end
+            end
+        end
+
+        # process nash
+        if v2 == 0 begin
+            vf := OCTO_KEY_D
+            if vf key begin
+                # make sure user has enough resources
+                i := count_stills
+                load v7
+                if current_count > 49 begin
+                    # update spent resource count
+                    if current_count != 99 begin
+                        current_count -= 50
+                    end
+
+                    #update max resource for spent resource
+                    max_resource += 2
+                    if max_resource > 99 then max_resource := 99
+
+                    # draw spent resource
+                    :call draw_resource
+                    i := count_stills
+                    save v7
+
+                    # add to new resource
+                    i := count_nash
+                    load v7
+                    current_count += 1
+                    if current_count > max_resource begin
+                        current_count := max_resource
+                    end
+
+                    # save current state of resource
+                    :call draw_resource
+                    i := count_nash
+                    save v7
+
+                    # update cooldown
+                    i := timers
+                    load v7
+                    v1 := 10
+                    i := timers
+                    save v7
                 end
             end
         end
